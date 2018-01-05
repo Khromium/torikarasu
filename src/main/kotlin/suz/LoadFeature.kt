@@ -35,9 +35,7 @@ fun load(file: File): INDArray {
 fun loadFeatureArray(rootFolder: File): List<INDArray> {
     var featureArray = mutableListOf<INDArray>()
     if (!rootFolder.isDirectory) return featureArray
-    for (file in rootFolder.listFiles().filter { it.name.contains(".\\.txt".toRegex()) }.sorted()) {
-        featureArray.add(load(file))
-    }
+    rootFolder.listFiles().filter { it.name.contains(".\\.txt".toRegex()) }.sorted().mapTo(featureArray) { load(it) }
     return featureArray
 }
 
