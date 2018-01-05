@@ -21,7 +21,11 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
     var cBiasNDArray = Nd4j.randn(OU, 1).mul(0.1)
 
 
-    fun train(epsiron: Double = 0.01) {
+    /**
+     * 学習部分
+     * @param epsiron 閾値。前回との学習コストの差が epsiron 未満になったら停止する
+     */
+    fun train(epsiron: Double = 0.0001) {
         var lastCostValue = 99999.0
         var epoc = 1
         var images = mutableListOf<INDArray>()
@@ -63,12 +67,35 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
             }
             val ys = sigmoidNuron(xArray, wWeightNDArray, bBiasNDArray)
             val zs = sigmoidNuron(ys, uWeightNDArray, cBiasNDArray)
-            val cost = costFunction(zs, indexArray).sumNumber().toDouble()
+            val cost = costFunction(zs, indexArray)
             println("EPOC:${epoc}\tcost:${cost}")
             epoc++
             if ((lastCostValue - cost).absoluteValue <= epsiron) return //閾値以下になったら終了
             lastCostValue = cost
         }
+    }
+
+    /**
+     * シグモイドニューロン
+     * @param target 学習対象データ
+     * @param weightArray 重み
+     * @param biasVector バイアス
+     */
+    private fun sigmoidNuron(target: INDArray, weightArray: INDArray, biasVector: INDArray): INDArray {
+        val p = weightArray.mmul(target).subColumnVector(biasVector).mul(-1)
+        val denominator = Transforms.exp(p).add(1)
+        return denominator.rdiv(1)
+    }
+
+    /**
+     * コスト関数。正解データとの平均二乗誤差
+     * @param target 評価対象のデータ
+     * @param answer 正解データ
+     * @return 計算結果
+     */
+    private fun costFunction(target: INDArray, answer: INDArray): Double {
+        val c = target.sub(answer)
+        return Transforms.pow(c, 2).sumNumber().toDouble()/(c.size(0)*c.size(1))
     }
 
     fun save() {
@@ -91,17 +118,5 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
         uWeightNDArray = data.featureMatrix
         data.load(cBiasFile)
         cBiasNDArray = data.featureMatrix
-
-    }
-
-    private fun sigmoidNuron(target: INDArray, weightArray: INDArray, biasVector: INDArray): INDArray {
-        val p = weightArray.mmul(target).subColumnVector(biasVector).mul(-1)
-        val denominator = Transforms.exp(p).add(1)
-        return denominator.rdiv(1)
-    }
-
-    private fun costFunction(target: INDArray, answer: INDArray): INDArray {
-        val c = target.sub(answer)
-        return Nd4j.sum(Transforms.pow(c, 2))
     }
 }
