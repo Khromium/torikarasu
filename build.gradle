@@ -29,6 +29,7 @@ sourceSets {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     compile "org.nd4j:nd4j-native-platform:0.9.1"
+//    compile "org.nd4j:nd4j-cuda-8.0-platform:0.9.1"
 //    compile "org.slf4j:slf4j-log4j12:1.7.12"
     compile fileTree(dir: 'libs', include: '*.jar')
 }

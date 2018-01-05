@@ -7,11 +7,11 @@ import org.nd4j.linalg.ops.transforms.Transforms
 import java.io.File
 import kotlin.math.absoluteValue
 
-val HU = 64 //隠れ層
+val HU = 196 //隠れ層
 val OU = 2 //出力：鳥か烏か 01 10
 val TORI = Nd4j.zeros(2, 1).put(0, 0, 1)
 val KARASU = Nd4j.zeros(2, 1).put(1, 0, 1)
-val LAMBDA = 0.000005
+val LAMBDA = 0.00001
 val IU = Math.pow((ROWS_AND_COLUMNS * 2).toDouble(), 2.0).toInt()//画素サイズ 14*14
 
 
@@ -59,6 +59,7 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
             val cost = costFunction(zs, indexArray)
 
             epoc++
+//            if (epoc>=500) {
             if ((lastCostValue - cost).absoluteValue <= epsiron) {
                 println("EPOC:${epoc}\tcost:${cost}")
                 return
@@ -122,6 +123,7 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
      */
     fun costFunction(target: INDArray, answer: INDArray): Double {
         val c = target.sub(answer)
+//        println(target)
         return Transforms.pow(c, 2).sumNumber().toDouble() / (c.size(0) * c.size(1))
     }
 

@@ -22,7 +22,7 @@ fun rotateValidation(toriDataArray: List<INDArray>, karasuDataArray: List<INDArr
     if (toriDataArray.size != karasuDataArray.size) return //サイズ違いチェック
     if (toriDataArray.size % targetNum != 0 || karasuDataArray.size % targetNum != 0) return //割り切れるかチェック
 
-    while (count != toriDataArray.size) {
+    while (count <= toriDataArray.size) {
         var toriExtracted = mutableListOf<INDArray>()
         var toriEval = mutableListOf<INDArray>()
         var karasuExtracted = mutableListOf<INDArray>()
@@ -32,7 +32,7 @@ fun rotateValidation(toriDataArray: List<INDArray>, karasuDataArray: List<INDArr
         toriDataArray.withIndex().filter { !isRangeIn(count, targetNum, it.index) }.mapTo(toriExtracted) { it.value }
         karasuDataArray.withIndex().filter { !isRangeIn(count, targetNum, it.index) }.mapTo(karasuExtracted) { it.value }
         var predict = Prediction(toriExtracted, karasuExtracted)
-        predict.train(0.0001)
+        predict.train(0.00001)
 
         var (xArray, indexArray) = predict.createIndexedImageArray(toriEval, karasuEval) //評価用行列
         var result = predict.varidation(xArray)
