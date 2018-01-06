@@ -5,13 +5,14 @@ import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
 import java.io.File
+import java.util.*
 import kotlin.math.absoluteValue
 
-val HU = 200 //隠れ層
+val HU = 196 //隠れ層
 val OU = 2 //出力：鳥か烏か 01 10
 val TORI = Nd4j.zeros(2, 1).put(0, 0, 1)
 val KARASU = Nd4j.zeros(2, 1).put(1, 0, 1)
-val LAMBDA = 0.00001
+val LAMBDA = 0.000001
 val IU = Math.pow((ROWS_AND_COLUMNS * 2).toDouble(), 2.0).toInt()//画素サイズ 14*14
 
 
@@ -30,17 +31,32 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
     fun train(epsiron: Double = 0.0001) {
         var lastCostValue = 99999.0
         var epoc = 1
-        var images = mutableListOf<INDArray>()
 
-        var (xArray, indexArray) = createIndexedImageArray()
-        images.addAll(toriDataArray)
-        images.addAll(karasuDataArray)
+        var (xArraytmp, indexArraytmp) = createIndexedImageArray()
+        var imagestmp = mutableListOf<INDArray>()
+        imagestmp.addAll(toriDataArray)
+        imagestmp.addAll(karasuDataArray)
+
+
+        var images = mutableListOf<INDArray>() //シャッフル済みデータ
+        var xArray = Nd4j.zeros(xArraytmp.size(0), xArraytmp.size(1))
+        var indexArray = Nd4j.zeros(indexArraytmp.size(0), indexArraytmp.size(1))
+
+        var count = 0
+        while (imagestmp.size != 0) {
+            var random = Random().nextInt(imagestmp.size)
+            images.add(imagestmp[random])  //抽出
+            imagestmp.removeAt(random) //削除
+            xArray.putColumn(count, xArraytmp.getColumn(random))
+            indexArray.putColumn(count, indexArraytmp.getColumn(random))
+            count++
+        }
 
         while (true) {//エポック回し
             for ((index, input) in images.withIndex()) {
 
                 val y = sigmoidNuron(input.reshape(IU, 1), wWeightNDArray, bBiasNDArray)
-//                val x = sigmoidNuron(y, vWeightNDArray, dBiasNDArray)
+                val x = sigmoidNuron(y, vWeightNDArray, dBiasNDArray)
 //                val z = sigmoidNuron(x, uWeightNDArray, cBiasNDArray)
                 val z = sigmoidNuron(y, uWeightNDArray, cBiasNDArray)
                 val deltaOut = z.sub(indexArray.getColumn(index)).mul(z.mul(z.rsub(1)))
@@ -67,7 +83,7 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
             val ys = sigmoidNuron(xArray, wWeightNDArray, bBiasNDArray)
             val zs = sigmoidNuron(ys, uWeightNDArray, cBiasNDArray)
             val cost = costFunction(zs, indexArray)
-            if (epoc % 50 == 0) println("EPOC:${epoc}\tcost:${cost}")
+            if (epoc % 50 == 1) println("EPOC:${epoc}\tcost:${cost}")
 
 //            if (epoc>=500) {
             if ((lastCostValue - cost).absoluteValue <= epsiron) {
@@ -135,6 +151,7 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
     fun costFunction(target: INDArray, answer: INDArray): Double {
         val c = target.sub(answer)
 //        println(target)
+//        println(answer)
         return Transforms.pow(c, 2).sumNumber().toDouble() / (c.size(0) * c.size(1))
     }
 
