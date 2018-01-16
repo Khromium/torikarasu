@@ -1,33 +1,24 @@
 package suz
 
 import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
-import java.io.File
 import kotlin.math.absoluteValue
 
-val HU = 200 //隠れ層
+val HU = 100 //隠れ層
 val OU = 2 //出力：鳥か烏か 01 10
 val TORI = Nd4j.zeros(2, 1).put(0, 0, 1)
 val KARASU = Nd4j.zeros(2, 1).put(1, 0, 1)
-val LAMBDA = 0.00001
+val LAMBDA = 0.0001
 val IU = Math.pow((ROWS_AND_COLUMNS * 2).toDouble(), 2.0).toInt()//画素サイズ 14*14
 
 
-class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) {
-    var wWeightNDArray = Nd4j.randn(HU, IU).mul(0.1) //入力層
-    var bBiasNDArray = Nd4j.randn(HU, 1).mul(0.1) //入力層
-    var vWeightNDArray = Nd4j.randn(HU, HU).mul(0.1) //中間層
-    var dBiasNDArray = Nd4j.randn(HU, 1).mul(0.1) //中間層
-    var uWeightNDArray = Nd4j.randn(OU, HU).mul(0.1) //出力層
-    var cBiasNDArray = Nd4j.randn(OU, 1).mul(0.1) //出力層
-
+class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : PredictionAbst() {
     /**
      * 学習部分
      * @param epsiron 閾値。前回との学習コストの差が epsiron 未満になったら停止する
      */
-    fun train(epsiron: Double = 0.0001) {
+    override fun train(epsiron: Double) {
         var lastCostValue = 99999.0
         var epoc = 1
         var images = mutableListOf<INDArray>()
@@ -67,7 +58,7 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
             val ys = sigmoidNuron(xArray, wWeightNDArray, bBiasNDArray)
             val zs = sigmoidNuron(ys, uWeightNDArray, cBiasNDArray)
             val cost = costFunction(zs, indexArray)
-            if (epoc % 50 == 0) println("EPOC:${epoc}\tcost:${cost}")
+            if (epoc % 50 == 1) println("EPOC:${epoc}\tcost:${cost}")
 
 //            if (epoc>=500) {
             if ((lastCostValue - cost).absoluteValue <= epsiron) {
@@ -107,7 +98,7 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
      * 評価用関数
      * @param xArray 評価用データ
      */
-    fun varidation(xArray: INDArray): INDArray {
+    override fun varidation(xArray: INDArray): INDArray {
         val ys = sigmoidNuron(xArray, wWeightNDArray, bBiasNDArray)
         val zs = sigmoidNuron(ys, uWeightNDArray, cBiasNDArray)
         return zs
@@ -139,44 +130,4 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
     }
 
 
-    /**
-     * 学習データ保存
-     */
-    fun save(wWeightFile: File = File("./wWeight"),
-             bBiasFile: File = File("./bBias"),
-             vWeightFile: File = File("./vWeight"),
-             dBiasFile: File = File("./dBias"),
-             uWeightFile: File = File("./uWeight"),
-             cBiasFile: File = File("./cBias")) {
-        DataSet(wWeightNDArray, Nd4j.zeros(1, 1)).save(wWeightFile)
-        DataSet(bBiasNDArray, Nd4j.zeros(1, 1)).save(bBiasFile)
-        DataSet(vWeightNDArray, Nd4j.zeros(1, 1)).save(vWeightFile)
-        DataSet(dBiasNDArray, Nd4j.zeros(1, 1)).save(dBiasFile)
-        DataSet(uWeightNDArray, Nd4j.zeros(1, 1)).save(uWeightFile)
-        DataSet(cBiasNDArray, Nd4j.zeros(1, 1)).save(cBiasFile)
-    }
-
-    /**
-     * 学習データ読み込み
-     */
-    fun load(wWeightFile: File = File("./wWeight"),
-             bBiasFile: File = File("./bBias"),
-             vWeightFile: File = File("./vWeight"),
-             dBiasFile: File = File("./dBias"),
-             uWeightFile: File = File("./uWeight"),
-             cBiasFile: File = File("./cBias")) {
-        var data = DataSet()
-        data.load(wWeightFile)
-        wWeightNDArray = data.featureMatrix
-        data.load(bBiasFile)
-        bBiasNDArray = data.featureMatrix
-        data.load(vWeightFile)
-        vWeightNDArray = data.featureMatrix
-        data.load(dBiasFile)
-        dBiasNDArray = data.featureMatrix
-        data.load(uWeightFile)
-        uWeightNDArray = data.featureMatrix
-        data.load(cBiasFile)
-        cBiasNDArray = data.featureMatrix
-    }
 }
