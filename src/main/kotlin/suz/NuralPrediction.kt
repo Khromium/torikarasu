@@ -1,8 +1,10 @@
 package suz
 
 import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
+import java.io.File
 import kotlin.math.absoluteValue
 
 val HU = 100 //隠れ層
@@ -13,7 +15,13 @@ val LAMBDA = 0.0001
 val IU = Math.pow((ROWS_AND_COLUMNS * 2).toDouble(), 2.0).toInt()//画素サイズ 14*14
 
 
-class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : PredictionAbst() {
+class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : IPrediction {
+    var wWeightNDArray = Nd4j.randn(HU, IU).mul(0.1) //入力層
+    var bBiasNDArray = Nd4j.randn(HU, 1).mul(0.1) //入力層
+    var vWeightNDArray = Nd4j.randn(HU, HU).mul(0.1) //中間層
+    var dBiasNDArray = Nd4j.randn(HU, 1).mul(0.1) //中間層
+    var uWeightNDArray = Nd4j.randn(OU, HU).mul(0.1) //出力層
+    var cBiasNDArray = Nd4j.randn(OU, 1).mul(0.1) //出力層
     /**
      * 学習部分
      * @param epsiron 閾値。前回との学習コストの差が epsiron 未満になったら停止する
@@ -130,4 +138,46 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
     }
 
 
+    /**
+     * 学習データ保存
+     */
+    override fun save() {
+        val wWeightFile = File("./wWeight")
+        val bBiasFile = File("./bBias")
+        val vWeightFile = File("./vWeight")
+        val dBiasFile = File("./dBias")
+        val uWeightFile = File("./uWeight")
+        val cBiasFile = File("./cBias")
+        DataSet(wWeightNDArray, Nd4j.zeros(1, 1)).save(wWeightFile)
+        DataSet(bBiasNDArray, Nd4j.zeros(1, 1)).save(bBiasFile)
+        DataSet(vWeightNDArray, Nd4j.zeros(1, 1)).save(vWeightFile)
+        DataSet(dBiasNDArray, Nd4j.zeros(1, 1)).save(dBiasFile)
+        DataSet(uWeightNDArray, Nd4j.zeros(1, 1)).save(uWeightFile)
+        DataSet(cBiasNDArray, Nd4j.zeros(1, 1)).save(cBiasFile)
+    }
+
+    /**
+     * 学習データ読み込み
+     */
+    override fun load() {
+        val wWeightFile = File("./wWeight")
+        val bBiasFile = File("./bBias")
+        val vWeightFile = File("./vWeight")
+        val dBiasFile = File("./dBias")
+        val uWeightFile = File("./uWeight")
+        val cBiasFile = File("./cBias")
+        var data = DataSet()
+        data.load(wWeightFile)
+        wWeightNDArray = data.featureMatrix
+        data.load(bBiasFile)
+        bBiasNDArray = data.featureMatrix
+        data.load(vWeightFile)
+        vWeightNDArray = data.featureMatrix
+        data.load(dBiasFile)
+        dBiasNDArray = data.featureMatrix
+        data.load(uWeightFile)
+        uWeightNDArray = data.featureMatrix
+        data.load(cBiasFile)
+        cBiasNDArray = data.featureMatrix
+    }
 }
