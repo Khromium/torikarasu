@@ -7,6 +7,7 @@ import java.nio.charset.Charset
 
 const val ROWS_AND_COLUMNS = 7 //画素数
 const val FEATURE_NUM = 4//特徴量の数
+val DATA_SIZE = Math.pow((ROWS_AND_COLUMNS * 2).toDouble(), 2.0).toInt()//画素サイズ 14*14
 
 /**
  * 7x7の畳み込み画像を読み込む
@@ -54,4 +55,28 @@ fun loadLayer(file: File): MutableList<INDArray> {
     }
     //14x14の行列を返す
     return featuresArray
+}
+
+
+/**
+ * データ集合を一枚一枚縦に並べたデータの行列に変更します。
+ * 鳥,烏の順に作られます。
+ *
+ * それに応じて鳥か烏かの正解データも返します
+ * @param firstDataArray 1番目(鳥)データ
+ * @param secondDataArray 2番目(烏)データ
+ * @return 行列データ,正解データ
+ */
+fun createIndexedImageArray(firstDataArray: List<INDArray>, secondDataArray: List<INDArray>): Pair<INDArray, INDArray> {
+    var indexArray = Nd4j.zeros(1, 1)
+    var xArray = Nd4j.zeros(1, 1)
+    firstDataArray.withIndex().forEach { (i, v) ->
+        xArray = if (i != 0) Nd4j.hstack(xArray, v.reshape(DATA_SIZE, 1)) else v.reshape(DATA_SIZE, 1)
+        indexArray = if (i != 0) Nd4j.hstack(indexArray, TORI) else TORI //Indexに鳥行列を追加
+    }
+    secondDataArray.withIndex().forEach { (i, v) ->
+        xArray = Nd4j.hstack(xArray, v.reshape(DATA_SIZE, 1))
+        indexArray = Nd4j.hstack(indexArray, KARASU) //Indexに烏行列を追加
+    }
+    return Pair(xArray, indexArray)
 }

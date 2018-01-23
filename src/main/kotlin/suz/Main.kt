@@ -7,7 +7,7 @@ fun main(args: Array<String>) {
 
     val toriDataArray = loadFeatureArray(File("./data/1/"))
     val karasuDataArray = loadFeatureArray(File("./data/2/"))
-//    var predict = Prediction(toriDataArray, karasuDataArray)
+//    var predict = NuralPrediction(toriDataArray, karasuDataArray)
 //    predict.train(0.0001)
 //    predict.save()
     rotateValidation(toriDataArray, karasuDataArray)
@@ -22,7 +22,7 @@ fun rotateValidation(toriDataArray: List<INDArray>, karasuDataArray: List<INDArr
     if (toriDataArray.size != karasuDataArray.size) return //サイズ違いチェック
     if (toriDataArray.size % targetNum != 0 || karasuDataArray.size % targetNum != 0) return //割り切れるかチェック
 
-    while (count+targetNum <= toriDataArray.size/2) {
+    while (count + targetNum <= toriDataArray.size / 2) {
         var toriExtracted = mutableListOf<INDArray>()
         var toriEval = mutableListOf<INDArray>()
         var karasuExtracted = mutableListOf<INDArray>()
@@ -31,10 +31,10 @@ fun rotateValidation(toriDataArray: List<INDArray>, karasuDataArray: List<INDArr
         karasuDataArray.withIndex().filter { isRangeIn(count, targetNum, it.index) }.mapTo(karasuEval) { it.value }
         toriDataArray.withIndex().filter { !isRangeIn(count, targetNum, it.index) }.mapTo(toriExtracted) { it.value }
         karasuDataArray.withIndex().filter { !isRangeIn(count, targetNum, it.index) }.mapTo(karasuExtracted) { it.value }
-        var predict = Prediction(toriExtracted, karasuExtracted)
+        var predict: IPrediction = NuralPrediction(toriExtracted, karasuExtracted) //認識データ指定
         predict.train(0.000005)
 
-        var (xArray, indexArray) = predict.createIndexedImageArray(toriEval, karasuEval) //評価用行列
+        var (xArray, indexArray) = createIndexedImageArray(toriEval, karasuEval) //評価用行列
         var result = predict.varidation(xArray)
         var toriCollect = 0
         var karasuCollect = 0

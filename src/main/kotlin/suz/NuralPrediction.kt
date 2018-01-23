@@ -12,11 +12,10 @@ val OU = 2 //出力：鳥か烏か 01 10
 val TORI = Nd4j.zeros(2, 1).put(0, 0, 1)
 val KARASU = Nd4j.zeros(2, 1).put(1, 0, 1)
 val LAMBDA = 0.0001
-val IU = Math.pow((ROWS_AND_COLUMNS * 2).toDouble(), 2.0).toInt()//画素サイズ 14*14
 
 
-class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : IPrediction {
-    var wWeightNDArray = Nd4j.randn(HU, IU).mul(0.1) //入力層
+class NuralPrediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : IPrediction {
+    var wWeightNDArray = Nd4j.randn(HU, DATA_SIZE).mul(0.1) //入力層
     var bBiasNDArray = Nd4j.randn(HU, 1).mul(0.1) //入力層
     var vWeightNDArray = Nd4j.randn(HU, HU).mul(0.1) //中間層
     var dBiasNDArray = Nd4j.randn(HU, 1).mul(0.1) //中間層
@@ -31,14 +30,14 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
         var epoc = 1
         var images = mutableListOf<INDArray>()
 
-        var (xArray, indexArray) = createIndexedImageArray()
+        var (xArray, indexArray) = createIndexedImageArray(toriDataArray, karasuDataArray)
         images.addAll(toriDataArray)
         images.addAll(karasuDataArray)
 
         while (true) {//エポック回し
             for ((index, input) in images.withIndex()) {
 
-                val y = sigmoidNuron(input.reshape(IU, 1), wWeightNDArray, bBiasNDArray)
+                val y = sigmoidNuron(input.reshape(DATA_SIZE, 1), wWeightNDArray, bBiasNDArray)
 //                val x = sigmoidNuron(y, vWeightNDArray, dBiasNDArray)
 //                val z = sigmoidNuron(x, uWeightNDArray, cBiasNDArray)
                 val z = sigmoidNuron(y, uWeightNDArray, cBiasNDArray)
@@ -52,7 +51,7 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
                 val dc = deltaOut.mul(-1)
 //                val dv = deltaHidden2.mmul(y.transpose())
 //                val dd = deltaHidden2.mul(-1)
-                val dw = deltaHidden.mmul(input.reshape(IU, 1).transpose())
+                val dw = deltaHidden.mmul(input.reshape(DATA_SIZE, 1).transpose())
                 val db = deltaHidden.mul(-1)
 
                 uWeightNDArray = uWeightNDArray.sub(du.mul(LAMBDA))
@@ -76,30 +75,6 @@ class Prediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<IN
             epoc++
             lastCostValue = cost
         }
-    }
-
-
-    /**
-     * データ集合を一枚一枚縦に並べたデータの行列に変更します。
-     * 鳥,烏の順に作られます。
-     *
-     * それに応じて鳥か烏かの正解データも返します
-     * @param firstDataArray 1番目(鳥)データ
-     * @param secondDataArray 2番目(烏)データ
-     * @return 行列データ,正解データ
-     */
-    fun createIndexedImageArray(firstDataArray: List<INDArray> = toriDataArray, secondDataArray: List<INDArray> = karasuDataArray): Pair<INDArray, INDArray> {
-        var indexArray = Nd4j.zeros(1, 1)
-        var xArray = Nd4j.zeros(1, 1)
-        firstDataArray.withIndex().forEach { (i, v) ->
-            xArray = if (i != 0) Nd4j.hstack(xArray, v.reshape(IU, 1)) else v.reshape(IU, 1)
-            indexArray = if (i != 0) Nd4j.hstack(indexArray, TORI) else TORI //Indexに鳥行列を追加
-        }
-        secondDataArray.withIndex().forEach { (i, v) ->
-            xArray = Nd4j.hstack(xArray, v.reshape(IU, 1))
-            indexArray = Nd4j.hstack(indexArray, KARASU) //Indexに烏行列を追加
-        }
-        return Pair(xArray, indexArray)
     }
 
     /**
