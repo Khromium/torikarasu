@@ -14,6 +14,7 @@ class LinearDiscriminant(val toriDataArray: List<INDArray>, val karasuDataArray:
         val (toriTrain, karasuTrain) = createTKTrainArray()
 //        val n1 = toriTrain.size(0)
 //        val n2 = karasuTrain.size(0)
+        println(Nd4j.mean(toriTrain, 0))
         var mean1 = Nd4j.mean(toriTrain, 0).reshape(DATA_SIZE, 1)
         var mean2 = Nd4j.mean(karasuTrain, 0).reshape(DATA_SIZE, 1)
 
@@ -51,10 +52,30 @@ class LinearDiscriminant(val toriDataArray: List<INDArray>, val karasuDataArray:
 
         val threshold = (m1 + m2) / 2
         println("threshold = $threshold")
-        var count1 = 0
-        for (index in 0..(xArray.size(0) - 1)) {
 
+        val yn = xArray.transpose().mmul(result) //結果計算
+        var resultList1 = DoubleArray(yn.size(1))
+        var resultList2 = DoubleArray(yn.size(1))
+        println("ynsize ${yn.size(0)}*${yn.size(1)}")
+
+        for (yIndex in 0..(yn.size(1) - 1)) {
+            when {
+                yn.getDouble(0, yIndex) > threshold -> {
+                    resultList1[yIndex] = 1.0
+                    resultList2[yIndex] = 0.0
+                }
+                yn.getDouble(0, yIndex) < threshold -> {
+                    resultList1[yIndex] = 0.0
+                    resultList2[yIndex] = 1.0
+                }
+                else -> {
+                    resultList1[yIndex] = 0.0
+                    resultList2[yIndex] = 0.0
+                }
+            }
         }
+        println(Nd4j.vstack(Nd4j.create(resultList1), Nd4j.create(resultList2)))
+        return Nd4j.vstack(Nd4j.create(resultList1), Nd4j.create(resultList2))
     }
 
     override fun save() {
