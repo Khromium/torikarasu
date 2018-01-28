@@ -46,7 +46,9 @@ fun rotateValidation(toriDataArray: List<INDArray>, karasuDataArray: List<INDArr
                     && indexArray.getDouble(0, index) < indexArray.getDouble(1, index)) karasuCollect++ //karasu
         }
 
-        println("tori:${toriCollect}/${targetNum} \nkara:${karasuCollect}/${targetNum} \n${toriCollect + karasuCollect}/${targetNum * 2}")
+        println("tori:${toriCollect}/${targetNum} ${toriCollect.toDouble() / targetNum * 100}%" +
+                "\nkara:${karasuCollect}/${targetNum} ${karasuCollect.toDouble() / targetNum * 100}%" +
+                "\n${toriCollect + karasuCollect}/${targetNum * 2} ${(toriCollect + karasuCollect).toDouble() / (targetNum * 2) * 100}%")
         count += targetNum //場所シフト
     }
 }
