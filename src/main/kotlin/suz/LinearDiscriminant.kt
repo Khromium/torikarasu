@@ -1,7 +1,6 @@
 package suz
 
 import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.api.ops.impl.shape.Transpose
 import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.inverse.InvertMatrix
@@ -10,10 +9,14 @@ import java.io.File
 
 class LinearDiscriminant(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : IPrediction {
     var result: INDArray? = null
+
+    /**
+     * 学習部分
+     */
     override fun train(epsiron: Double) {
-        val (toriTrain, karasuTrain) = createTKTrainArray()
-        var mean1 = Nd4j.mean(toriTrain.transpose(), 0).reshape(DATA_SIZE, 1)
-        var mean2 = Nd4j.mean(karasuTrain.transpose(), 0).reshape(DATA_SIZE, 1)
+        val (toriTrain, karasuTrain) = createTKTrainArray()  //複数データを同時に扱いたかったので変形する
+        var mean1 = Nd4j.mean(toriTrain.transpose(), 0).reshape(DATA_SIZE, 1) //次元0の平均計算
+        var mean2 = Nd4j.mean(karasuTrain.transpose(), 0).reshape(DATA_SIZE, 1) //次元0の平均計算
 
         //総クラス内の共分散行列
         var sw = Nd4j.zeros(DATA_SIZE, DATA_SIZE)
@@ -28,7 +31,7 @@ class LinearDiscriminant(val toriDataArray: List<INDArray>, val karasuDataArray:
             sw = sw.add(sub.mmul(sub.transpose()))
         }
         var swInv = InvertMatrix.invert(sw, false)
-        result = swInv.mmul(mean1.sub(mean2))
+        result = swInv.mmul(mean1.sub(mean2)) //傾きwを求めている
     }
 
     fun createTKTrainArray(): Pair<INDArray, INDArray> {
@@ -42,12 +45,15 @@ class LinearDiscriminant(val toriDataArray: List<INDArray>, val karasuDataArray:
     }
 
 
+    /**
+     * 評価用メソッド
+     */
     override fun varidation(xArray: INDArray): INDArray {
         val (toriTrain, karasuTrain) = createTKTrainArray()
         val m1 = toriTrain.transpose().mmul(result).sumNumber().toDouble() / toriDataArray.size
         val m2 = karasuTrain.transpose().mmul(result).sumNumber().toDouble() / karasuDataArray.size
 
-        val threshold = (m1 + m2) / 2
+        val threshold = (m1 + m2) / 2 //判別のしきい値を求める
         println("threshold = $threshold")
 
         val yn = xArray.transpose().mmul(result) //結果計算
@@ -55,7 +61,7 @@ class LinearDiscriminant(val toriDataArray: List<INDArray>, val karasuDataArray:
         var resultList2 = DoubleArray(yn.size(0))
 //        println("ynsize ${yn.size(0)}*${yn.size(1)}")
 
-        for (yIndex in 0..(yn.size(0) - 1)) {
+        for (yIndex in 0..(yn.size(0) - 1)) { //結果の行列を作ってる
             when {
                 yn.getDouble(yIndex, 0) > threshold -> {
                     resultList1[yIndex] = 1.0
@@ -85,6 +91,4 @@ class LinearDiscriminant(val toriDataArray: List<INDArray>, val karasuDataArray:
         data.load(resultFile)
         result = data.featureMatrix
     }
-
-
 }
