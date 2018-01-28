@@ -7,7 +7,7 @@ import org.nd4j.linalg.inverse.InvertMatrix
 import java.io.File
 
 
-class LinearDiscriminant(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : IPrediction {
+class LDA(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : IPrediction {
     var result: INDArray? = null
 
     /**
