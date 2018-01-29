@@ -5,11 +5,6 @@ import org.nd4j.linalg.api.ndarray.INDArray
 interface IPrediction {
 
     /**
-     * putargs
-     */
-    fun putArgs(args: Array<String>)
-
-    /**
      * 学習
      */
     fun train(epsiron: Double = 0.0001)

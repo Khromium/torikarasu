@@ -15,10 +15,6 @@ val LAMBDA = 0.0001
 
 
 class NuralPrediction(val toriDataArray: List<INDArray>, val karasuDataArray: List<INDArray>) : IPrediction {
-    override fun putArgs(args: Array<String>) {
-        //何かセットする値があるときに使う
-    }
-
     var wWeightNDArray = Nd4j.randn(HU, DATA_SIZE).mul(0.1) //入力層
     var bBiasNDArray = Nd4j.randn(HU, 1).mul(0.1) //入力層
     var vWeightNDArray = Nd4j.randn(HU, HU).mul(0.1) //中間層

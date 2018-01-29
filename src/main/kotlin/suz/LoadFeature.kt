@@ -20,14 +20,6 @@ fun load(file: File): INDArray {
     return Nd4j.create(dataArray)
 }
 
-fun loadArray(file: File): DoubleArray {
-    var textString = file.readText(Charset.defaultCharset())
-    var data = textString.split("\r\n|\n".toRegex())
-    var dataArray = DoubleArray(DATA_SIZE)
-    data.withIndex().forEach { if (it.index < DATA_SIZE) dataArray[it.index] = it.value.toDouble() }
-    return dataArray
-}
-
 /**
  * 一括ファイル読み込み
  */
