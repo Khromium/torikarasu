@@ -32,7 +32,9 @@ fun rotateValidation(toriDataArray: List<INDArray>, karasuDataArray: List<INDArr
         toriDataArray.withIndex().filter { !isRangeIn(count, targetNum, it.index) }.mapTo(toriExtracted) { it.value }
         karasuDataArray.withIndex().filter { !isRangeIn(count, targetNum, it.index) }.mapTo(karasuExtracted) { it.value }
         var predict: IPrediction = LDA(toriExtracted, karasuExtracted) //認識データ指定
+        predict.putArgs(arrayOf(count.toString(), (count + targetNum).toString()))
         predict.train(0.000005)
+
 
         var (xArray, indexArray) = createIndexedImageArray(toriEval, karasuEval) //評価用行列
         var result = predict.varidation(xArray)
