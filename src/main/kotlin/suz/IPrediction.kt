@@ -13,7 +13,7 @@ interface IPrediction {
      * 評価
      * @param xArray 評価用入力データ
      */
-    fun varidation(xArray: INDArray): INDArray
+//    fun varidation(xArray: INDArray): INDArray?
 
     /**
      * 学習データ保存
