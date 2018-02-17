@@ -7,7 +7,7 @@ import org.nd4j.linalg.inverse.InvertMatrix
 import java.io.File
 
 
-class LDA(val classDataList1: INDArray, val classDataList2: INDArray) : IPrediction {
+class LDA(val classData1: INDArray, val classData2: INDArray) : IPrediction {
     var result: INDArray? = null
     val DATA_SIZE = 2
 
@@ -15,17 +15,17 @@ class LDA(val classDataList1: INDArray, val classDataList2: INDArray) : IPredict
      * 学習部分
      */
     override fun train(epsiron: Double) {
-        var mean1 = Nd4j.mean(classDataList1, 0).reshape(classDataList1.size(1), 1) //次元0の平均計算
-        var mean2 = Nd4j.mean(classDataList2, 0).reshape(classDataList2.size(1), 1) //次元0の平均計算
+        var mean1 = Nd4j.mean(classData1, 0).reshape(classData1.size(1), 1) //次元0の平均計算
+        var mean2 = Nd4j.mean(classData2, 0).reshape(classData2.size(1), 1) //次元0の平均計算
         //総クラス内の共分散行列
         var sw = Nd4j.zeros(DATA_SIZE, DATA_SIZE)
-        for (index in 0 until classDataList1.size(0)) {
-            val shape = classDataList1.transpose().getColumn(index).reshape(DATA_SIZE, 1)
+        for (index in 0 until classData1.size(0)) {
+            val shape = classData1.transpose().getColumn(index).reshape(DATA_SIZE, 1)
             val sub = shape.sub(mean1)
             sw = sw.add(sub.mmul(sub.transpose()))
         }
-        for (index in 0 until classDataList2.size(0)) {
-            val shape = classDataList2.transpose().getColumn(index).reshape(DATA_SIZE, 1)
+        for (index in 0 until classData2.size(0)) {
+            val shape = classData2.transpose().getColumn(index).reshape(DATA_SIZE, 1)
             val sub = shape.sub(mean2)
             sw = sw.add(sub.mmul(sub.transpose()))
         }
