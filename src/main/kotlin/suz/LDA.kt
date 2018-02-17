@@ -7,14 +7,14 @@ import org.nd4j.linalg.inverse.InvertMatrix
 import java.io.File
 
 
-class LDA(val classData1: INDArray, val classData2: INDArray) : IPrediction {
+class LDA(val classData1: INDArray, val classData2: INDArray) {
     var result: INDArray? = null
     val DATA_SIZE = 2
 
     /**
      * 学習部分
      */
-    override fun train(epsiron: Double) {
+    fun train(): INDArray? {
         var mean1 = Nd4j.mean(classData1, 0).reshape(classData1.size(1), 1) //次元0の平均計算
         var mean2 = Nd4j.mean(classData2, 0).reshape(classData2.size(1), 1) //次元0の平均計算
         //総クラス内の共分散行列
@@ -31,16 +31,16 @@ class LDA(val classData1: INDArray, val classData2: INDArray) : IPrediction {
         }
         var swInv = InvertMatrix.invert(sw, false)
         result = swInv.mmul(mean1.sub(mean2)) //傾きwを求めている
-        println(result)
+        return result
     }
 
 
-    override fun save() {
+    fun save() {
         val resultFile = File("./linearResult")
         DataSet(result, Nd4j.zeros(1, 1)).save(resultFile)
     }
 
-    override fun load() {
+    fun load() {
         val resultFile = File("./linearResult")
         var data = DataSet()
         data.load(resultFile)

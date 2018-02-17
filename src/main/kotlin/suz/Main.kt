@@ -12,7 +12,7 @@ fun main(args: Array<String>) {
     var dataArray2 = Nd4j.create(mnd2.sample(50))
 
     var predict = LDA(dataArray1, dataArray2)
-    predict.train()
+    val result = predict.train()
 
-    println("w = [${predict.result!!.getDouble(0, 0)},${predict.result!!.getDouble(1, 0)}]")
+    println("w = [${result!!.getDouble(0, 0)},${result!!.getDouble(1, 0)}]")
 }
