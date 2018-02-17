@@ -1,16 +1,31 @@
 package suz
 
+import org.apache.commons.math3.distribution.MultivariateNormalDistribution
 import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
 import java.io.File
 
 fun main(args: Array<String>) {
 
     val toriDataArray = loadFeatureArray(File("./data/1/"))
     val karasuDataArray = loadFeatureArray(File("./data/2/"))
+    var cov = arrayOf(doubleArrayOf(3.0, 1.0), doubleArrayOf(1.0, 3.0))
+    var mnd1 = MultivariateNormalDistribution(doubleArrayOf(-5.0, -5.0), cov)
+    var mnd2 = MultivariateNormalDistribution(doubleArrayOf(5.0, 5.0), cov)
+
+    var dataArray1 = Nd4j.create(mnd1.sample(196))
+    var dataArray2 = Nd4j.create(mnd2.sample(196))
+
 //    var predict = NuralPrediction(toriDataArray, karasuDataArray)
 //    predict.train(0.0001)
 //    predict.save()
-    rotateValidation(toriDataArray, karasuDataArray)
+    var arrays1 = arrayListOf<INDArray>(dataArray1.getColumn(0))
+    arrays1.add(dataArray1.getColumn(1))
+    var arrays2 = arrayListOf<INDArray>(dataArray2.getColumn(0))
+    arrays2.add(dataArray2.getColumn(1))
+    var predict = LDA(arrays1, arrays2)
+    predict.train()
+    println(predict.result)
 }
 
 /**
